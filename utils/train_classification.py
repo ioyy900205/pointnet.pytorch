@@ -6,15 +6,17 @@ import torch
 import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
+import sys
+sys.path.append("/home/liuliang/deep_learning/pointnet.pytorch/")
 from pointnet.dataset import ShapeNetDataset, ModelNetDataset
 from pointnet.model import PointNetCls, feature_transform_regularizer
 import torch.nn.functional as F
 from tqdm import tqdm
 
-
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--batchSize', type=int, default=32, help='input batch size')
+    '--batchSize', type=int, default=128, help='input batch size')
 parser.add_argument(
     '--num_points', type=int, default=2500, help='input batch size')
 parser.add_argument(
@@ -94,6 +96,7 @@ if opt.model != '':
 optimizer = optim.Adam(classifier.parameters(), lr=0.001, betas=(0.9, 0.999))
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 classifier.cuda()
+classifier = torch.nn.DataParallel(classifier)
 
 num_batch = len(dataset) / opt.batchSize
 
